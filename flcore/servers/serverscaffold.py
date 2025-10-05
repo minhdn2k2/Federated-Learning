@@ -82,7 +82,7 @@ class ServerSCAFFOLD(BaseServer):
 
                 for client_id in self.selected_clients:
                     self.send_model(client_id, self.global_model)
-                    self.clients[client_id].train()
+                    self.clients[client_id].train(epoch)  # param "epoch" is for lr decay 
 
                 self.receive_models()
                 agg_delta = self.aggregate_parameters()

@@ -13,16 +13,16 @@ class clientAvg(Client):
         super().__init__(args, id, train_x, train_y, **kwargs)
 
     
-    def train(self):
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=self.local_learning_rate,
-                                    weight_decay=self.weight_decay,momentum=self.momentum)
-        self.trainloader = self.load_train_data()
-
+    def train(self, global_round):
         self.model.train()
         self.model = self.model.to(self.device)
 
-        # --- get initial state (θ^{0}) ---
-        self.theta0 = self.params_to_vector(self.model)
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=self.local_learning_rate * (self.lr_decay ** global_round),
+                                    weight_decay=self.weight_decay,momentum=self.momentum)
+        self.trainloader = self.load_train_data()
+
+        # --- get initial state (w_i_0^r) ---
+        self.theta0 = self.params_to_vector(self.model).detach()
 
         for k in range(self.local_epochs):
             epoch_loss, correct, total = 0.0, 0, 0
@@ -48,8 +48,8 @@ class clientAvg(Client):
             print(f"     [Client {self.id}] | Epoch {k+1}/{self.local_epochs} | Loss={avg_loss:.4f} | Acc={acc:.4f}")
 
                 
-        # --- Get final state (θ_{K}) and compute delta (Δθ = θ_{K} − θ_{0}) ---
-        self.thetaK = self.params_to_vector(self.model)
+        # --- Get final state (w_i_K^r) and compute delta (Δw_i^r = w_i_K^r − w^r) ---
+        self.thetaK = self.params_to_vector(self.model).detach()
         self.delta_state = self.thetaK - self.theta0
 
 

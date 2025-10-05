@@ -33,7 +33,7 @@ class Client(object):
             batch_size = self.batch_size
         dataset = MultiDataset(self.train_x, self.train_y,
                                train=True, dataset_name=self.dataset_name)
-        return DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(dataset, batch_size=self.batch_size, shuffle=True, pin_memory=True)
 
 
     @torch.no_grad()

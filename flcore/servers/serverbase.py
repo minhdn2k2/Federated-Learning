@@ -131,7 +131,7 @@ class BaseServer(object):
             batch_size=batch_size,
             shuffle=False)
         
-        total_ce = 0.0
+        total_loss = 0.0
         total_correct = 0
         total = 0
         for xb, yb in tst_gen:
@@ -139,15 +139,15 @@ class BaseServer(object):
             yb = yb.to(self.device).long().view(-1)
 
             logits = model(xb)
-            ce = loss_fn(logits, yb)              # summed over the batch
-            total_ce += ce.item()
+            loss = loss_fn(logits, yb)            
+            total_loss += loss.item()
 
             preds = logits.argmax(dim=1)
             total_correct += (preds == yb).sum().item()
             total += yb.numel()
 
-        # mean CE over all samples
-        avg_ce = total_ce / max(total, 1)
+        # mean loss over all samples
+        avg_loss = total_loss / max(total, 1)
 
         # optional L2 regularization (added once)
         if w_decay is not None and float(w_decay) > 0.0:
@@ -155,9 +155,9 @@ class BaseServer(object):
             for p in model.parameters():
                 if p.requires_grad:
                     l2 += p.detach().pow(2).sum().item()
-            avg_loss = avg_ce + 0.5 * float(w_decay) * l2
+            avg_loss = avg_loss + 0.5 * float(w_decay) * l2
         else:
-            avg_loss = avg_ce
+            avg_loss = avg_loss
         acc = total_correct / max(total, 1)
         return avg_loss, acc
 

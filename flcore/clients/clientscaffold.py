@@ -16,18 +16,18 @@ class clientScaffold(Client):
             # Initialize c_i to zeros of same shape
             self.ci = torch.zeros_like(self.c_global, device="cpu")
 
-    def train(self):
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=self.local_learning_rate,
-                                    weight_decay=self.weight_decay,momentum=self.momentum)
-        self.trainloader = self.load_train_data()
-        
+    def train(self, global_round):
         self.model.train()
         self.model = self.model.to(self.device)
 
-        # --- get initial state (θ^{0}) ---
-        self.theta0 = self.params_to_vector(self.model)
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=self.local_learning_rate * (self.lr_decay ** global_round),
+                                    weight_decay=self.weight_decay,momentum=self.momentum)
+        self.trainloader = self.load_train_data()
 
-        # Compute correction (c - c_i)
+        # --- get initial state (w_i_0^r) ---
+        self.theta0 = self.params_to_vector(self.model).detach()
+
+        # Compute correction (c^r - c_i^r)
         self.c_diff = (self.c_global - self.ci).to(self.device)
 
         local_steps = 0
@@ -42,7 +42,7 @@ class clientScaffold(Client):
                 optimizer.zero_grad()
                 loss.backward()
 
-                # ---- SCAFFOLD gradient correction: g <- g + (c - c_i) ----
+                # ---- SCAFFOLD gradient correction: g <- g + (c^r - c_i^r) ----
                 offset = 0
                 for p in self.model.parameters():
                     n = p.numel()
@@ -65,11 +65,11 @@ class clientScaffold(Client):
             acc = correct / max(total, 1)
             print(f"     [Client {self.id}] | Epoch {k+1}/{self.local_epochs} | Loss={avg_loss:.4f} | Acc={acc:.4f}")
 
-        # --- Get final state (θ_{K}) and compute delta (Δθ = θ_{K} − θ_{0}) ---
-        self.thetaK = self.params_to_vector(self.model)
+        # --- Get final state (w_i_K^r) and compute delta (Δw_i^r = w_i_K^r − w^r) ---
+        self.thetaK = self.params_to_vector(self.model).detach()
         self.delta_state = self.thetaK - self.theta0
 
-        # --- Update local control variate: c_i+ = c_i - c + (1/(τ η)) (θ^0 - θ^K) ---
+        # --- Update local control variate: c_i^{r+1} = c_i^r - c^r + (1/(τ η)) (w^r - w_i_K^r) ---
         tau = max(local_steps, 1)    # total local steps
         ci_new = self.ci - self.c_global + (self.theta0 - self.thetaK) / (tau * float(self.local_learning_rate))
 

@@ -8,11 +8,13 @@ import os
 import matplotlib.pyplot as plt
 
 from utils.utils_dataset import DatasetObject
-from utils.utils_model import CNN
+from utils.utils_model import CNN, Resnet18_GN
 
 from flcore.servers.serveravg import ServerAvg
 from flcore.servers.serverscaffold import ServerSCAFFOLD
 from flcore.servers.serverfeddyn import ServerFedDyn
+from flcore.servers.serverfedsam import ServerFedSAM
+from flcore.servers.servermofedsam import ServerMoFedSAM
 
 
 logger = logging.getLogger()
@@ -34,22 +36,26 @@ if __name__ == "__main__":
 
     # Hyperparam of FL system
     parser.add_argument('-dev', "--device", type=str, default="cuda")
-    parser.add_argument('-gr', "--global_rounds", type=int, default=500)
+    parser.add_argument('-gr', "--global_rounds", type=int, default=800)
     parser.add_argument('-lbs', "--batch_size", type=int, default=50)
     parser.add_argument("--global_learning_rate", type=float, default=1.0)
 
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.01)
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.1)
     parser.add_argument('--lr_decay', type=float, default=0.998)
-    parser.add_argument('--weight_decay', type=float, default=0.0) #0.1e-5
+    parser.add_argument('--weight_decay', type=float, default=0.1e-3) #0.1e-5
     parser.add_argument('--momentum', type=float, default=0.0)
-    parser.add_argument('--global_momentum', type=float, default=0.9) # For FedAvgM
 
-    parser.add_argument('-le', "--local_epochs", type=int, default=10)
-
+    parser.add_argument('-le', "--local_epochs", type=int, default=5)
     parser.add_argument('-jr', "--selected_ratio", type=float, default=0.1,help="Ratio of clients per round")
 
-    #FedDyn
+    # FedDyn
     parser.add_argument("--feddyn_beta", type=float, default=10)
+
+    # FedSAM
+    parser.add_argument("--fedsam_rho", type=float, default=0.1)
+
+    # MoFedSAM
+    parser.add_argument("--beta_mofedsam", type=float, default=0.1)
 
     args = parser.parse_args()
 
@@ -99,12 +105,30 @@ if __name__ == "__main__":
     FedDyn_test_acc = np.asarray(server_FedDyn.test_acc_hist, dtype=float)
     FedDyn_train_loss = np.asarray(server_FedDyn.train_loss_hist, dtype=float)
 
+    # FedSAM
+    print('FedSAM')
+    server_FedSAM = ServerFedSAM(args=args)
+    server_FedSAM.train()
+    FedSAM_test_acc = np.asarray(server_FedSAM.test_acc_hist, dtype=float)
+    FedSAM_train_loss = np.asarray(server_FedSAM.train_loss_hist, dtype=float)
+
+    # MoFedSAM
+    print('MoFedSAM')
+    server_MoFedSAM = ServerMoFedSAM(args=args)
+    server_MoFedSAM.train()
+    MoFedSAM_test_acc = np.asarray(server_MoFedSAM.test_acc_hist, dtype=float)
+    MoFedSAM_train_loss = np.asarray(server_MoFedSAM.train_loss_hist, dtype=float)
+
+
+
 
     # Plot 1: Test Accuracy vs Rounds
     plt.figure(figsize=(6, 5))
     plt.plot(np.arange(1, args.global_rounds + 1), fedavg_test_acc, label="FedAvg", color="#0072B2", linewidth=1) 
     plt.plot(np.arange(1, args.global_rounds + 1), SCAFFOLD_test_acc, label="SCAFFOLD", color="#41B200", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedDyn_test_acc, label="FedDyn", color="#B2A900", linewidth=1)
+    plt.plot(np.arange(1, args.global_rounds + 1), FedSAM_test_acc, label="FedSAM", color="#B20000", linewidth=1)
+    plt.plot(np.arange(1, args.global_rounds + 1), MoFedSAM_test_acc, label="MoFedSAM", color="#B20091", linewidth=1)
     plt.xlabel("Global Round", fontsize=16)
     plt.ylabel("Test Accuracy", fontsize=16)
     plt.legend(fontsize=16, loc='lower right', bbox_to_anchor=(1.015, -0.02))
@@ -120,6 +144,8 @@ if __name__ == "__main__":
     plt.plot(np.arange(1, args.global_rounds + 1), fedavg_train_loss, label="FedAvg", color="#0072B2", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), SCAFFOLD_train_loss, label="SCAFFOLD", color="#41B200", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedDyn_train_loss, label="FedDyn", color="#B2A900", linewidth=1)
+    plt.plot(np.arange(1, args.global_rounds + 1), FedSAM_train_loss, label="FedSAM", color="#B20000", linewidth=1)
+    plt.plot(np.arange(1, args.global_rounds + 1), MoFedSAM_train_loss, label="MoFedSAM", color="#B20091", linewidth=1)
     plt.xlabel("Global Round", fontsize=16)
     plt.ylabel("Train Loss", fontsize=16)
     plt.legend(fontsize=16, loc='upper right', bbox_to_anchor=(1.015, 1.02))
