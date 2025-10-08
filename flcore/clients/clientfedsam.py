@@ -139,7 +139,7 @@ class clientFedSAM(Client):
 
                 loss1, loss2 = sam.step(closure)     # loss1: at w, loss2: at w+e(w)
 
-                epoch_loss += loss2
+                epoch_loss += loss2 * yb.numel()
                 
                 with torch.no_grad():
                     out_now = self.model(xb) 

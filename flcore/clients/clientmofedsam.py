@@ -170,7 +170,7 @@ class clientMoFedSAM(Client):
                 loss1, loss2 = sam.step_with_momentum(closure)
                 local_steps += 1
 
-                epoch_loss += loss2
+                epoch_loss += loss2 * yb.numel()
                 
                 with torch.no_grad():
                     out_now = self.model(xb) 

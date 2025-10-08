@@ -1,11 +1,5 @@
-"""
-Client implementation for FedAvg.
-Assumes each client's data is provided as numpy arrays (X: N,C,H,W,  y: N,1 or N).
-Converts to torch.Tensor and uses a simple DataLoader for local training.
-"""
 from flcore.clients.clientbase import Client
 import torch
-
 
 
 class clientAvg(Client):
@@ -38,7 +32,7 @@ class clientAvg(Client):
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10)
                 optimizer.step()
 
-                epoch_loss += loss.item() 
+                epoch_loss += loss.item() * yb.numel()
                 preds = outputs.argmax(1)
                 correct += (preds == yb).sum().item()
                 total += yb.numel()

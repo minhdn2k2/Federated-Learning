@@ -53,7 +53,7 @@ class clientFedDyn(Client):
                 optimizer.step()
                 local_steps += 1
 
-                epoch_loss += loss.item() 
+                epoch_loss += loss.item() * yb.numel()
                 preds = outputs.argmax(1)
                 correct += (preds == yb).sum().item()
                 total += yb.numel()

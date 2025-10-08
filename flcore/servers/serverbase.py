@@ -120,7 +120,7 @@ class BaseServer(object):
             self.clients[client_id].model = None
 
     def get_acc_loss(self, data_x, data_y, model, w_decay=None):
-        loss_fn = torch.nn.CrossEntropyLoss(reduction='sum')
+        loss_fn = torch.nn.CrossEntropyLoss(reduction='mean')
         batch_size = min(6000, data_x.shape[0])
         model.eval()
         model.to(self.device)
@@ -129,7 +129,8 @@ class BaseServer(object):
         tst_gen = DataLoader(
             MultiDataset(data_x, data_y, dataset_name=self.dataset_name),
             batch_size=batch_size,
-            shuffle=False)
+            shuffle=False
+            )
         
         total_loss = 0.0
         total_correct = 0
@@ -140,7 +141,7 @@ class BaseServer(object):
 
             logits = model(xb)
             loss = loss_fn(logits, yb)            
-            total_loss += loss.item()
+            total_loss += loss.item() * yb.numel()
 
             preds = logits.argmax(dim=1)
             total_correct += (preds == yb).sum().item()
@@ -151,13 +152,15 @@ class BaseServer(object):
 
         # optional L2 regularization (added once)
         if w_decay is not None and float(w_decay) > 0.0:
-            l2 = 0.0
-            for p in model.parameters():
-                if p.requires_grad:
-                    l2 += p.detach().pow(2).sum().item()
-            avg_loss = avg_loss + 0.5 * float(w_decay) * l2
+            with torch.no_grad():
+                l2 = 0.0
+                for p in model.parameters():
+                    if p.requires_grad:
+                        l2 += p.detach().float().pow(2).sum().item()
+            avg_loss = avg_loss + 0.5 * float(w_decay) * l2  
         else:
             avg_loss = avg_loss
+
         acc = total_correct / max(total, 1)
         return avg_loss, acc
 

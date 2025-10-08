@@ -24,7 +24,7 @@ class Client(object):
         self.weight_decay = args.weight_decay
         self.local_epochs = args.local_epochs
 
-        self.loss = nn.CrossEntropyLoss(reduction='sum')
+        self.loss = nn.CrossEntropyLoss(reduction='mean')
         self.momentum = args.momentum
 
 

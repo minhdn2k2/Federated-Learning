@@ -3,6 +3,7 @@ import numpy as np
 import os
 import copy
 import torch
+from tqdm import tqdm
 
 from flcore.clients.clientmofedsam import clientMoFedSAM
 from flcore.servers.serverbase import BaseServer
@@ -14,6 +15,7 @@ class ServerMoFedSAM(BaseServer):
 
         self.local_learning_rate = args.local_learning_rate
         self.prev_global_update = None
+        self.beta = args.beta_mofedsam
 
         self.setup_clients(args, clientMoFedSAM)
         print("Finished creating server and clients.")
@@ -53,19 +55,19 @@ class ServerMoFedSAM(BaseServer):
             for wi, di in zip(w, self.model_update):
                 term = float(wi) * di.detach().cpu()
                 agg = term if agg is None else agg + term
-            return agg / (self.K * self.local_learning_rate)  # 1-D tensor    
+            return agg #/ (self.K * self.local_learning_rate)  # 1-D tensor    
 
     # -------------------------------------------
 
     def train(self):       
 
-        if os.path.exists(f'Output/plot/test_acc_hist_MoFedSAM_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy'):
-            print(f"MoFedSAM is already trained on {self.dataset_name} {self.data_obj.rule} {self.data_obj.rule_arg}")
+        if os.path.exists(f'Output/plot/test_acc_hist_MoFedSAM_{self.beta}_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy'):
+            print(f"MoFedSAM with beta {self.beta} is already trained on {self.dataset_name} {self.data_obj.rule} {self.data_obj.rule_arg}")
             self.test_acc_hist = []
             self.train_loss_hist = []
 
-            self.test_acc_hist = np.load(f'Output/plot/test_acc_hist_MoFedSAM_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy')
-            self.train_loss_hist = np.load(f'Output/plot/train_loss_hist_MoFedSAM_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy')
+            self.test_acc_hist = np.load(f'Output/plot/test_acc_hist_MoFedSAM_{self.beta}_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy')
+            self.train_loss_hist = np.load(f'Output/plot/train_loss_hist_MoFedSAM_{self.beta}_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy')
         else:
             # --------------- Training ---------------
             for epoch in range(self.global_rounds): 
@@ -99,7 +101,7 @@ class ServerMoFedSAM(BaseServer):
                     "**** Communication sel %3d, Cent Accuracy: %.4f, Cent Loss: %.4f, Test Accuracy: %.4f, Test Loss: %.4f"
                     % (epoch+1, acc_train, loss_train, acc_tst, loss_tst))
 
-            np.save(f"Output/plot/test_acc_hist_MoFedSAM_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy", np.asarray(self.test_acc_hist, dtype=float))
-            np.save(f"Output/plot/train_loss_hist_MoFedSAM_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy", np.asarray(self.train_loss_hist, dtype=float))
+            np.save(f"Output/plot/test_acc_hist_MoFedSAM_{self.beta}_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy", np.asarray(self.test_acc_hist, dtype=float))
+            np.save(f"Output/plot/train_loss_hist_MoFedSAM_{self.beta}_{self.global_rounds}_{self.dataset_name}_{self.data_obj.rule}_{self.data_obj.rule_arg}.npy", np.asarray(self.train_loss_hist, dtype=float))
 
 

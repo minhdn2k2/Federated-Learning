@@ -14,8 +14,8 @@ from flcore.servers.serveravg import ServerAvg
 from flcore.servers.serverscaffold import ServerSCAFFOLD
 from flcore.servers.serverfeddyn import ServerFedDyn
 from flcore.servers.serverfedsam import ServerFedSAM
-from flcore.servers.servermofedsam import ServerMoFedSAM
-
+from flcore.servers.servermofedsam import ServerMoFedSAM  # under considering
+from flcore.servers.serverfedsmoo import ServerFedSMOO
 
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
@@ -49,13 +49,16 @@ if __name__ == "__main__":
     parser.add_argument('-jr', "--selected_ratio", type=float, default=0.1,help="Ratio of clients per round")
 
     # FedDyn
-    parser.add_argument("--feddyn_beta", type=float, default=10)
+    parser.add_argument("--feddyn_beta", type=float, default=100)
 
-    # FedSAM
+    # FedSAM vs MoFedSAM
     parser.add_argument("--fedsam_rho", type=float, default=0.1)
 
     # MoFedSAM
-    parser.add_argument("--beta_mofedsam", type=float, default=0.1)
+    parser.add_argument("--beta_mofedsam", type=float, default=0.9)
+
+    # FedSMOO
+    parser.add_argument("--beta_fedsmoo", type=float, default=10)
 
     args = parser.parse_args()
 
@@ -113,11 +116,18 @@ if __name__ == "__main__":
     FedSAM_train_loss = np.asarray(server_FedSAM.train_loss_hist, dtype=float)
 
     # MoFedSAM
-    print('MoFedSAM')
-    server_MoFedSAM = ServerMoFedSAM(args=args)
-    server_MoFedSAM.train()
-    MoFedSAM_test_acc = np.asarray(server_MoFedSAM.test_acc_hist, dtype=float)
-    MoFedSAM_train_loss = np.asarray(server_MoFedSAM.train_loss_hist, dtype=float)
+    # print('MoFedSAM')
+    # server_MoFedSAM = ServerMoFedSAM(args=args)
+    # server_MoFedSAM.train()
+    # MoFedSAM_test_acc = np.asarray(server_MoFedSAM.test_acc_hist, dtype=float)
+    # MoFedSAM_train_loss = np.asarray(server_MoFedSAM.train_loss_hist, dtype=float)
+
+    # FedSMOO
+    print('FedSMOO')
+    server_FedSMOO = ServerFedSMOO(args=args)
+    server_FedSMOO.train()
+    FedSMOO_test_acc = np.asarray(server_FedSMOO.test_acc_hist, dtype=float)
+    FedSMOO_train_loss = np.asarray(server_FedSMOO.train_loss_hist, dtype=float)
 
 
 
@@ -128,7 +138,7 @@ if __name__ == "__main__":
     plt.plot(np.arange(1, args.global_rounds + 1), SCAFFOLD_test_acc, label="SCAFFOLD", color="#41B200", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedDyn_test_acc, label="FedDyn", color="#B2A900", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedSAM_test_acc, label="FedSAM", color="#B20000", linewidth=1)
-    plt.plot(np.arange(1, args.global_rounds + 1), MoFedSAM_test_acc, label="MoFedSAM", color="#B20091", linewidth=1)
+    plt.plot(np.arange(1, args.global_rounds + 1), FedSMOO_test_acc, label="FedSMOO", color="#B20091", linewidth=1)
     plt.xlabel("Global Round", fontsize=16)
     plt.ylabel("Test Accuracy", fontsize=16)
     plt.legend(fontsize=16, loc='lower right', bbox_to_anchor=(1.015, -0.02))
@@ -145,7 +155,7 @@ if __name__ == "__main__":
     plt.plot(np.arange(1, args.global_rounds + 1), SCAFFOLD_train_loss, label="SCAFFOLD", color="#41B200", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedDyn_train_loss, label="FedDyn", color="#B2A900", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedSAM_train_loss, label="FedSAM", color="#B20000", linewidth=1)
-    plt.plot(np.arange(1, args.global_rounds + 1), MoFedSAM_train_loss, label="MoFedSAM", color="#B20091", linewidth=1)
+    plt.plot(np.arange(1, args.global_rounds + 1), FedSMOO_train_loss, label="FedSMOO", color="#B20091", linewidth=1)
     plt.xlabel("Global Round", fontsize=16)
     plt.ylabel("Train Loss", fontsize=16)
     plt.legend(fontsize=16, loc='upper right', bbox_to_anchor=(1.015, 1.02))
