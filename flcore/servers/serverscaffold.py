@@ -12,8 +12,7 @@ class ServerSCAFFOLD(BaseServer):
         super().__init__(args)
 
         # at server init, global control variate is created
-        self.c_global = torch.zeros_like(self.params_to_vector(self.global_model), 
-                                                    dtype=torch.float32,device="cpu")
+        self.c_global = None
 
         self.setup_clients(args, clientScaffold)
         print("Finished creating server and clients.")    
@@ -22,6 +21,8 @@ class ServerSCAFFOLD(BaseServer):
 
     def send_model(self, client_id, model):        
         self.clients[client_id].model = copy.deepcopy(model)
+        if self.c_global is None:
+            self.c_global = torch.zeros_like(self.params_to_vector(self.global_model), dtype=torch.float32,device="cpu")
         self.clients[client_id].receive_controls(self.c_global)
         print(f"Send Current Global Model and Global Control Variate to Client {client_id}")
 
