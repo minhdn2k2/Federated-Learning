@@ -1,5 +1,4 @@
 # Federated Learning in PyTorch
-**FedAvg · SCAFFOLD · FedDyn · FedSAM · MoFedSAM · FedSMOO · FedGF · FedLESAM**
 
 A lightweight, self‑contained Federated Learning (FL) toolbox built **only on PyTorch**.  
 This repository trains *multiple algorithms sequentially* on a chosen dataset and saves learning curves for easy comparison.
@@ -148,14 +147,6 @@ The core server utilities you may reuse:
 - **FedSMOO** — [Dynamic Regularized Sharpness Aware Minimization in Federated Learning: Approaching Global Consistency and Smooth Landscape](https://arxiv.org/abs/2305.11584) *ICML 2023*
 - **FedGF** — [Rethinking the Flat Minima Searching in Federated Learning](https://proceedings.mlr.press/v235/lee24aa.html) *ICML 2024*
 - **FedGF** — [Locally Estimated Global Perturbations are Better than Local Perturbations for Federated Sharpness-aware Minimization](https://arxiv.org/abs/2405.18890) *ICML 2024*
-
----
-
-## License
-Add a license file (e.g., **MIT**):
-```
-MIT License © 2025 <Dang Ngoc Minh / MoonLab-KAIST>
-```
 
 ---
 
