@@ -17,7 +17,7 @@ from flcore.servers.serverfedsam import ServerFedSAM
 from flcore.servers.servermofedsam import ServerMoFedSAM  # under considering ....
 from flcore.servers.serverfedsmoo import ServerFedSMOO
 from flcore.servers.serverfedgf import ServerFedGF   # Hard to consider Td and window ....
-
+from flcore.servers.serverfedlesam import ServerFedLESAM
 
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
@@ -135,11 +135,18 @@ if __name__ == "__main__":
     FedSMOO_train_loss = np.asarray(server_FedSMOO.train_loss_hist, dtype=float)
 
     # FedGF
-    print('FedGF')
-    server_FedGF = ServerFedGF(args=args)
-    server_FedGF.train()
-    FedGF_test_acc = np.asarray(server_FedGF.test_acc_hist, dtype=float)
-    FedGF_train_loss = np.asarray(server_FedGF.train_loss_hist, dtype=float)
+    # print('FedGF')
+    # server_FedGF = ServerFedGF(args=args)
+    # server_FedGF.train()
+    # FedGF_test_acc = np.asarray(server_FedGF.test_acc_hist, dtype=float)
+    # FedGF_train_loss = np.asarray(server_FedGF.train_loss_hist, dtype=float)
+
+
+    print('FedLESAM')
+    server_FedLESAM = ServerFedLESAM(args=args)
+    server_FedLESAM.train()
+    FedLESAM_test_acc = np.asarray(server_FedLESAM.test_acc_hist, dtype=float)
+    FedLESAM_train_loss = np.asarray(server_FedLESAM.train_loss_hist, dtype=float)
 
 
 
@@ -150,7 +157,7 @@ if __name__ == "__main__":
     plt.plot(np.arange(1, args.global_rounds + 1), FedDyn_test_acc, label="FedDyn", color="#B2A900", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedSAM_test_acc, label="FedSAM", color="#B20000", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedSMOO_test_acc, label="FedSMOO", color="#B20091", linewidth=1)
-    plt.plot(np.arange(1, args.global_rounds + 1), FedGF_test_acc, label="FedGF", color="#00B2A9", linewidth=1)
+    plt.plot(np.arange(1, args.global_rounds + 1), FedLESAM_test_acc, label="FedLESAM", color="#00B2A9", linewidth=1)
     plt.xlabel("Global Round", fontsize=16)
     plt.ylabel("Test Accuracy", fontsize=16)
     plt.legend(fontsize=16, loc='lower right', bbox_to_anchor=(1.015, -0.02))
@@ -168,7 +175,7 @@ if __name__ == "__main__":
     plt.plot(np.arange(1, args.global_rounds + 1), FedDyn_train_loss, label="FedDyn", color="#B2A900", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedSAM_train_loss, label="FedSAM", color="#B20000", linewidth=1)
     plt.plot(np.arange(1, args.global_rounds + 1), FedSMOO_train_loss, label="FedSMOO", color="#B20091", linewidth=1)
-    plt.plot(np.arange(1, args.global_rounds + 1), FedGF_train_loss, label="FedGF", color="#00B2A9", linewidth=1)
+    plt.plot(np.arange(1, args.global_rounds + 1), FedLESAM_train_loss, label="FedLESAM", color="#00B2A9", linewidth=1)
     plt.xlabel("Global Round", fontsize=16)
     plt.ylabel("Train Loss", fontsize=16)
     plt.legend(fontsize=16, loc='upper right', bbox_to_anchor=(1.015, 1.02))
